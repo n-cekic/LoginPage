@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Home</title>
+    <script src="app.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div>
+      <div class="login-container" onclick="onclick">
+        <div class="top"></div>
+        <div class="bottom"></div>
+        <div class="center">
+          <h2>Please Sign In</h2>
+          <input class="input" type="email" placeholder="email" />
+          <input class="input" type="password" placeholder="password" />
+          <input
+            id="confirm-password"
+            class="input"
+            type="text"
+            placeholder="confirm password"
+          />
+          <div id="button-container" class="button-container">
+            <button class="button blue" onclick="submit()">Log In</button>
+            or
+            <button class="button red" onclick="revealConfirmPassword()">
+              Sign In
+            </button>
+          </div>
+
+          <h2>&nbsp;</h2>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
