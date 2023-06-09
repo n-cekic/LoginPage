@@ -7,19 +7,18 @@ async function submit() {
   // Check if input is correct
   const data = {
     username: username,
-    password: password
+    password: password,
   };
 
-
-  const resp = await fetch('http://localhost:8080/login', {
-    method: 'POST',
+  const resp = await fetch("http://localhost:8080/login", {
+    method: "POST",
     mode: "no-cors",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
-  
+
   console.log(resp);
 }
 
@@ -32,10 +31,10 @@ function revealConfirmPassword() {
   const buttons = document.getElementById("button-container");
 
   if (!confirmPasswordVisible) {
-    buttons.style.transform = "translateY(55px)"
+    buttons.style.transform = "translateY(55px)";
     confirmPasswordVisible = true;
   } else {
-    if (!confPswd.value){
+    if (!confPswd.value) {
       buttons.style.transform = "translateY(0px)";
       confirmPasswordVisible = false;
     }
