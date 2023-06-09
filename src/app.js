@@ -1,4 +1,4 @@
-async function submit() {
+async function login() {
   console.log("Submitted!");
   const username = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -24,21 +24,29 @@ async function submit() {
 
 let confirmPasswordVisible = false;
 
-function revealConfirmPassword() {
+function signin() {
   console.log("sign in clicked.");
 
   const confPswd = document.getElementById("confirm-password");
   const buttons = document.getElementById("button-container");
 
   if (!confirmPasswordVisible) {
-    buttons.style.transform = "translateY(55px)";
-    confirmPasswordVisible = true;
+    revalConfirmPassword(buttons);
   } else {
     if (!confPswd.value) {
-      buttons.style.transform = "translateY(0px)";
-      confirmPasswordVisible = false;
+      hideConfirmPassword(buttons);
     }
   }
+}
 
+function revalConfirmPassword(buttons) {
+  buttons.style.transform = "translateY(55px)";
+  confirmPasswordVisible = true;
   console.log("confirm password revealed.");
+}
+
+function hideConfirmPassword(buttons) {
+  buttons.style.transform = "translateY(0px)";
+  confirmPasswordVisible = false;
+  console.log("confirm password hidden.");
 }
