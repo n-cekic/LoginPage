@@ -6,10 +6,23 @@ function submit() {
   const password = document.getElementById("password").value;
 
   // Perform your login logic here
-  // For example, make an AJAX request to the server to validate the credentials
+  // Check if input is correct
+  const data = {
+    username: username,
+    password: password
+  };
 
-  // Prevent the form from submitting and the page from refreshing
-  event.preventDefault();
+
+  const resp = await fetch('http://localhost:8080/login', {
+    method: 'POST',
+    mode: "no-cors",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  
+  console.log(resp);
 }
 
 function revealConfirmPassword() {
