@@ -12,14 +12,13 @@ async function login() {
 
     const resp = await fetch("http://localhost:8080/login", {
         method: "POST",
-        mode: "no-cors",
         headers: {
             "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
     });
 
-    console.log(resp);
+    console.log(await resp.text());
 }
 
 let confirmPasswordVisible = false;
