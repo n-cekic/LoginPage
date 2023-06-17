@@ -15,11 +15,11 @@ type LoginData struct {
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	res, err := httputil.DumpRequest(r, true)  
-	if err != nil {  
-		log.Fatal(err)  
-	}  
-	fmt.Print(string(res)) 
+	res, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(string(res))
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
@@ -38,13 +38,12 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Process loginData
 	fmt.Printf("Received login data: %+v\n", loginData)
 
-
 	// print the request
-	res, err := httputil.DumpRequest(r, true)  
-	if err != nil {  
-		log.Fatal(err)  
-	}  
-	fmt.Print(string(res)) 
+	res, err := httputil.DumpRequest(r, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(string(res))
 
 	response := map[string]interface{}{
 		"message": "Login successful",
