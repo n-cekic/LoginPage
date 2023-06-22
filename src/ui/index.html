@@ -23,12 +23,14 @@
                         class="input"
                         type="password"
                         placeholder="password"
+                        oninput="passwordsMatch()"
                     />
                     <input
                         id="confirm-password"
                         class="input"
                         type="password"
                         placeholder="confirm password"
+                        oninput="passwordsMatch()"
                     />
                     <div id="button-container" class="button-container">
                         <button class="button blue" onclick="login()">

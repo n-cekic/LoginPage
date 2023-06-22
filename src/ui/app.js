@@ -1,3 +1,5 @@
+let confirmPasswordVisible = false;
+
 async function login() {
     console.log("Submitted!");
     const username = document.getElementById("email").value;
@@ -10,7 +12,29 @@ async function login() {
         password: password,
     };
 
-    const resp = await fetch("http://localhost:8080/login", {
+    sendRequest(data, "login");
+}
+
+async function signin() {
+    console.log("sign in clicked.");
+
+    moveConfirmPasswordCover();
+
+    if (!passwordsMatch()) {
+        console.log("Passwords don't match.");
+        return;
+    }
+
+    console.log("Passwords matched.");
+
+    const password = document.getElementById("password").value;
+    const username = document.getElementById("email").value;
+
+    sendRequest({ username: username, password: password }, "signup");
+}
+
+async function sendRequest(data, resource) {
+    const resp = await fetch("http://localhost:8080/" + resource, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

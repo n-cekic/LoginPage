@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -21,15 +22,13 @@ type LoginData struct {
 	Password string `json:"password"`
 }
 
-func handleLogin(w http.ResponseWriter, r *http.Request) {
-	res, err := httputil.DumpRequest(r, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Print(string(res))
+type User struct {
+	Username       string
+	HashedPassword string
+	Salt           []byte
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request) {
+func handleLogin(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var loginData LoginData
 
@@ -44,7 +43,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Process loginData
 	fmt.Printf("Adding %+v to DB\n", loginData.Username)
-	addUser(loginData.Username, "", loginData.Password)
+	addUser(loginData.Username, nil, loginData.Password)
 
 	// print the request
 	res, err := httputil.DumpRequest(r, true)
@@ -60,11 +59,61 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-func addUser(username string, email string, password string) {
-	if email == "" {
-		email = "TEMP_ADDRESS"
+func handleSignup(w http.ResponseWriter, r *http.Request) {
+	// extract data
+	decoder := json.NewDecoder(r.Body)
+	var loginData LoginData
+
+	w.Header().Set("Content-Type", "application/json")
+
+	err := decoder.Decode(&loginData)
+	if err != nil {
+		log.Println("Error decoding JSON:", err)
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
 	}
-	_, err := db.Exec("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", username, email, password)
+
+	// encrypt password
+	encryptedData := encryptLoginData(loginData)
+
+	// pass data to datanase
+	addUser(encryptedData.Username, encryptedData.Salt, encryptedData.HashedPassword)
+
+	// response
+	response := map[string]interface{}{
+		"message": "SignUp successful",
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+func encryptLoginData(ld LoginData) User {
+	var us User
+	us.Username = ld.Username
+	us.Salt = generateSalt()
+	us.HashedPassword = hashPassword(ld.Password, us.Salt)
+	return us
+}
+
+func generateSalt() []byte {
+	salt := make([]byte, 4) // Generate a 16-byte (128-bit) salt
+
+	rand.Read(salt)
+
+	return salt
+}
+
+func hashPassword(pswd string, salt []byte) string {
+	passwordWithSalt := append([]byte(pswd), salt...)
+
+	// Generate the bcrypt hash with a cost factor of 10
+	hash, _ := bcrypt.GenerateFromPassword(passwordWithSalt, 10)
+	return string(hash)
+
+}
+
+func addUser(username string, salt []byte, password string) {
+	_, err := db.Exec("INSERT INTO users (username, salt, password) VALUES (?, ?, ?)", username, salt, password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,12 +123,14 @@ func main() {
 	fmt.Println("Listening at port :8080")
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/login", handleRequest)
+	mux.HandleFunc("/login", handleLogin)
+	mux.HandleFunc("/signup", handleSignup)
 
 	fs := http.FileServer(http.Dir("./ui"))
 	mux.Handle("/", fs)
 
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	go func() {
 		err := http.ListenAndServe(":8080", mux)
