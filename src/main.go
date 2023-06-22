@@ -10,6 +10,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var db *sql.DB
