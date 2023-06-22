@@ -21,19 +21,38 @@ async function login() {
     console.log(await resp.text());
 }
 
-let confirmPasswordVisible = false;
-
-function signin() {
-    console.log("sign in clicked.");
-
+function passwordsMatch() {
+    const password = document.getElementById("password");
     const confPswd = document.getElementById("confirm-password");
-    const buttons = document.getElementById("button-container");
+    const pswd = password.value;
+    const conf = confPswd.value;
 
     if (!confirmPasswordVisible) {
-        revalConfirmPassword(buttons);
+        password.style.borderColor = "black";
+        return;
+    }
+
+    if (pswd !== conf) {
+        password.style.borderColor = "red";
+        confPswd.style.borderColor = "red";
+        return false;
     } else {
-        if (!confPswd.value) {
-            hideConfirmPassword(buttons);
+        password.style.borderColor = "#66ff99";
+        confPswd.style.borderColor = "#66ff99";
+        return true;
+    }
+}
+
+function moveConfirmPasswordCover() {
+    const buttonContainer = document.getElementById("button-container");
+    const confirmPassworInput = document.getElementById("confirm-password");
+
+    if (!confirmPasswordVisible) {
+        revalConfirmPassword(buttonContainer);
+    } else {
+        if (!confirmPassworInput.value) {
+            hideConfirmPassword(buttonContainer);
+            return;
         }
     }
 }
