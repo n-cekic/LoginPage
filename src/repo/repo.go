@@ -3,6 +3,7 @@ package repo
 import (
 	"crypto/rand"
 	"database/sql"
+	"fmt"
 	"log"
 
 	"github.com/go-sql-driver/mysql"
@@ -25,19 +26,20 @@ func Init() *Repo {
 		User:                 "root",
 		Passwd:               "password",
 		Net:                  "tcp",
-		Addr:                 "127.0.0.1:3306",
-		DBName:               "users",
+		Addr:                 "localhost:3306",
+		DBName:               "login",
 		AllowNativePasswords: true,
 	}
 
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed connecting to the database: %s", err.Error())
+		fmt.Printf("failed connecting to the database: %+v", cfg)
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
-		log.Fatal(pingErr)
+		log.Fatalf("failed to ping the database: %s", pingErr.Error())
 	}
 
 	return &Repo{db}
