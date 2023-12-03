@@ -49,6 +49,10 @@ function validateSigninPassword() {
     const pswd = password.value;
     const conf = confPswd.value;
 
+    if (!confirmPasswordVisible) {
+        return false;
+    }
+
     if (pswd === "") {
         console.log("empty password")
         password.style= {};
