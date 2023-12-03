@@ -22,3 +22,16 @@ Once the app is up and runnig go to
 http://localhost:8080
 ```
 to access th UI.
+
+<p align="center">
+  <img align="center" src="https://github.com/n-cekic/LoginPage/blob/main/images/1.png">
+</p>
+<p align="center">
+  <img align="center" src="https://github.com/n-cekic/LoginPage/blob/main/images/2.png">
+</p>
+<p align="center">
+  <img align="center" src="https://github.com/n-cekic/LoginPage/blob/main/images/3.png">
+</p>
+<p align="center">
+  <img align="center" src="https://github.com/n-cekic/LoginPage/blob/main/images/4.png">
+</p>
