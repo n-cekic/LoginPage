@@ -88,6 +88,12 @@ function revalConfirmPassword(buttons) {
 }
 
 function hideConfirmPassword(buttons) {
+    const password = document.getElementById("password");
+    const confPswd = document.getElementById("confirm-password");
+
+    password.style= {};
+    confPswd.style = {};
+    
     buttons.style.transform = "translateY(0px)";
     confirmPasswordVisible = false;
     console.log("confirm password hidden.");
