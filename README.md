@@ -7,4 +7,18 @@ Welcome to my full-stack project! The backend is crafted in Go and communicates 
 To deploy the application effortlessly, I've containerized it using Docker. Utilize the provided `docker-compose.yml` and `Dockerfile` to kickstart the project:
 
 ```bash
-<fill it here>
+docker-compose up
+```
+To stop the running container use
+
+```bash
+docker-compose down
+```
+this will also remove image and running container.
+
+Once the app is up and runnig go to
+
+```php
+http://localhost:8080
+```
+to access th UI.
