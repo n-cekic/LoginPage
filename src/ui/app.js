@@ -17,15 +17,13 @@ async function login() {
 
 async function signin() {
     console.log("sign in clicked.");
-
-    moveConfirmPasswordCover();
-
-    if (!passwordsMatch()) {
-        console.log("Passwords don't match.");
+   
+    if (!validateSigninPassword()) {
+        moveConfirmPasswordCover();
         return;
     }
 
-    console.log("Passwords matched.");
+    moveConfirmPasswordCover();
 
     const password = document.getElementById("password").value;
     const username = document.getElementById("email").value;
@@ -45,7 +43,7 @@ async function sendRequest(data, resource) {
     console.log(await resp.text());
 }
 
-function passwordsMatch() {
+function validateSigninPassword() {
     const password = document.getElementById("password");
     const confPswd = document.getElementById("confirm-password");
     const pswd = password.value;
@@ -53,14 +51,18 @@ function passwordsMatch() {
 
     if (!confirmPasswordVisible) {
         password.style.borderColor = "black";
-        return;
     }
 
-    if (pswd !== conf) {
+    if (pswd === "") {
+        console.log("empty password")
+        return false
+    }else if (pswd !== conf) {
+        console.log("passwords don't match")
         password.style.borderColor = "red";
         confPswd.style.borderColor = "red";
         return false;
     } else {
+        console.log("password matched")
         password.style.borderColor = "#66ff99";
         confPswd.style.borderColor = "#66ff99";
         return true;
@@ -69,15 +71,11 @@ function passwordsMatch() {
 
 function moveConfirmPasswordCover() {
     const buttonContainer = document.getElementById("button-container");
-    const confirmPassworInput = document.getElementById("confirm-password");
 
     if (!confirmPasswordVisible) {
         revalConfirmPassword(buttonContainer);
     } else {
-        if (!confirmPassworInput.value) {
-            hideConfirmPassword(buttonContainer);
-            return;
-        }
+        hideConfirmPassword(buttonContainer);
     }
 }
 
