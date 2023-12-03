@@ -85,6 +85,18 @@ func (r *Repo) GetUser(ld LoginData) error {
 	return nil
 }
 
+func (r *Repo) fetchUser(ld LoginData) (User, error) {
+	row := r.db.QueryRow("SELECT salt, password FROM user WHERE username = ?;", ld.Username)
+
+	us := User{}
+	err := row.Scan(&us.Salt, &us.HashedPassword)
+	if err != nil {
+		log.Printf("failed to fetch user %s: %s", ld.Username, err.Error())
+		return us, err
+	}
+	return us, nil
+}
+
 // LoginData to be recieved
 type LoginData struct {
 	Username string `json:"username"`
