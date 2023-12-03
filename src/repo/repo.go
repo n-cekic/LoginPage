@@ -3,8 +3,8 @@ package repo
 import (
 	"crypto/rand"
 	"database/sql"
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -18,7 +18,7 @@ type Repo struct {
 type User struct {
 	Username       string
 	HashedPassword string
-	Salt           []byte
+	Salt           string
 }
 
 func Init() *Repo {
@@ -26,44 +26,63 @@ func Init() *Repo {
 		User:                 "root",
 		Passwd:               "password",
 		Net:                  "tcp",
-		Addr:                 "localhost:3306",
+		Addr:                 "172.25.0.2:3306",
 		DBName:               "login",
 		AllowNativePasswords: true,
 	}
 
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		log.Fatalf("failed connecting to the database: %s", err.Error())
-		fmt.Printf("failed connecting to the database: %+v", cfg)
+	var db *sql.DB
+	var err error
+	for {
+		db, err = sql.Open("mysql", cfg.FormatDSN())
+		if err != nil {
+			log.Printf("failed connecting to the database: %s", err.Error())
+			time.Sleep(time.Second * 3)
+			continue
+		}
+		break
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
-		log.Fatalf("failed to ping the database: %s", pingErr.Error())
+		log.Printf("failed to ping the database: %s", pingErr.Error())
 	}
+
+	log.Print("Database connection established")
 
 	return &Repo{db}
 }
 
 func (r *Repo) AddUser(ld LoginData) {
-	encUser := ld.encryptLoginData()
-	_, err := r.db.Exec("INSERT INTO users (username, salt, password) VALUES (?, ?, ?)", encUser.Username, encUser.Salt, encUser.HashedPassword)
+	encUser, err := ld.encryptLoginData()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("failed to encrypt new user data: %s", err.Error())
+		return
 	}
+	_, err = r.db.Exec("INSERT INTO user (username, password, salt) VALUES (?, ?, ?)", encUser.Username, encUser.HashedPassword, encUser.Salt)
+	if err != nil {
+		log.Printf("failed to add new user: %s", err.Error())
+	}
+	log.Printf("user: %s added", ld.Username)
 }
 
 func (r *Repo) GetUser(ld LoginData) error {
-	row := r.db.QueryRow("SELECT salt, password FROM users WHERE username = ?;", ld.Username)
+	row := r.db.QueryRow("SELECT salt, password FROM user WHERE username = ?;", ld.Username)
 
 	var us User
 	err := row.Scan(&us.Salt, &us.HashedPassword)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("failed to fetch user: ", err)
 	}
 
-	pswd := append(us.Salt, []byte(ld.Password)...)
-	return bcrypt.CompareHashAndPassword([]byte(us.HashedPassword), pswd)
+	pswd := us.Salt + ld.Password
+	err = bcrypt.CompareHashAndPassword([]byte(us.HashedPassword), []byte(pswd))
+	if err != nil {
+		log.Printf("failed to compare passwords: %s", err.Error())
+		return err
+	}
+	log.Print("passwords matched")
+	return nil
 }
 
 // LoginData to be recieved
@@ -72,27 +91,34 @@ type LoginData struct {
 	Password string `json:"password"`
 }
 
-func (ld LoginData) encryptLoginData() User {
+func (ld LoginData) encryptLoginData() (User, error) {
+	log.Print("encrypting user data")
 	var us User
 	us.Username = ld.Username
 	us.Salt = generateSalt()
-	us.HashedPassword = hashPassword(ld.Password, us.Salt)
-	return us
+	hashedPassword, err := hashPassword(us.Salt + ld.Password)
+	if err != nil {
+		return User{}, err
+	}
+	us.HashedPassword = hashedPassword
+	log.Print(" user data encrypted")
+	return us, nil
 }
 
-func generateSalt() []byte {
-	salt := make([]byte, 4) // Generate a 16-byte (128-bit) salt
-
+func generateSalt() string {
+	salt := make([]byte, 4)
 	rand.Read(salt)
-
-	return salt
+	return string(salt)
 }
 
-func hashPassword(pswd string, salt []byte) string {
-	passwordWithSalt := append(salt, []byte(pswd)...)
-
+func hashPassword(pswd string) (string, error) {
 	// Generate the bcrypt hash with a cost factor of 10
-	hash, _ := bcrypt.GenerateFromPassword(passwordWithSalt, 10)
-	return string(hash)
+	log.Print("hashing password")
+	hash, err := bcrypt.GenerateFromPassword([]byte(pswd), 10)
+	if err != nil {
+		log.Print("failed hashing password")
+		return "", err
+	}
+	return string(hash), err
 
 }
