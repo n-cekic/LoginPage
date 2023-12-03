@@ -66,17 +66,7 @@ func (r *Repo) AddUser(ld LoginData) {
 	log.Printf("user: %s added", ld.Username)
 }
 
-func (r *Repo) GetUser(ld LoginData) error {
-	row := r.db.QueryRow("SELECT salt, password FROM user WHERE username = ?;", ld.Username)
-
-	var us User
-	err := row.Scan(&us.Salt, &us.HashedPassword)
-	if err != nil {
-		log.Fatal("failed to fetch user: ", err)
-	}
-
-	pswd := us.Salt + ld.Password
-	err = bcrypt.CompareHashAndPassword([]byte(us.HashedPassword), []byte(pswd))
+	err = bcrypt.CompareHashAndPassword([]byte(us.HashedPassword), pswd)
 	if err != nil {
 		log.Printf("failed to compare passwords: %s", err.Error())
 		return err
@@ -108,7 +98,7 @@ func (ld LoginData) encryptLoginData() (User, error) {
 	var us User
 	us.Username = ld.Username
 	us.Salt = generateSalt()
-	hashedPassword, err := hashPassword(us.Salt + ld.Password)
+	hashedPassword, err := hashPassword(append(us.Salt, []byte(ld.Password)...))
 	if err != nil {
 		return User{}, err
 	}
@@ -117,16 +107,16 @@ func (ld LoginData) encryptLoginData() (User, error) {
 	return us, nil
 }
 
-func generateSalt() string {
+func generateSalt() []byte {
 	salt := make([]byte, 4)
 	rand.Read(salt)
-	return string(salt)
+	return salt
 }
 
-func hashPassword(pswd string) (string, error) {
+func hashPassword(pswd []byte) (string, error) {
 	// Generate the bcrypt hash with a cost factor of 10
 	log.Print("hashing password")
-	hash, err := bcrypt.GenerateFromPassword([]byte(pswd), 10)
+	hash, err := bcrypt.GenerateFromPassword(pswd, 10)
 	if err != nil {
 		log.Print("failed hashing password")
 		return "", err
