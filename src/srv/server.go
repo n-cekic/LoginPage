@@ -65,6 +65,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	msg := "Login successful"
 	err = s.login(loginData)
 	if err != nil {
+		fmt.Printf("failed to login: %s", err.Error())
 		msg = "Login failed"
 	}
 
@@ -72,6 +73,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		"message": msg,
 	}
 
+	log.Printf("response: %+v", response)
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -97,6 +99,7 @@ func (s *Server) handleSignup(w http.ResponseWriter, r *http.Request) {
 		"message": "SignUp successful",
 	}
 
+	log.Printf("response: %+v", response)
 	json.NewEncoder(w).Encode(response)
 }
 
