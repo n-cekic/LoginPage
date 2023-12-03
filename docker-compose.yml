@@ -1,0 +1,28 @@
+version: '3'
+services:
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      my_network:
+        ipv4_address: 172.25.0.2
+    volumes:
+      - ./migrations:/docker-entrypoint-initdb.d
+    
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      my_network:
+        ipv4_address: 172.25.0.3
+
+networks:
+  my_network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/24
