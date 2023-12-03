@@ -61,14 +61,15 @@ func Init() *Repo {
 }
 
 func (r *Repo) AddUser(ld LoginData) error {
-	us, err := r.fetchUser(ld)
-	if err != nil {
-		return err
-	}
-	if us.Username != "" {
+	_, err := r.fetchUser(ld)
+	if err == nil {
 		log.Printf("user: %s already exists", ld.Username)
 		return ErrorExistingUser
 	}
+	if err != sql.ErrNoRows {
+		return err
+	}
+
 	// if user doesnt already exists
 	encUser, err := ld.encryptLoginData()
 	if err != nil {
