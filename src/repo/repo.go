@@ -3,11 +3,18 @@ package repo
 import (
 	"crypto/rand"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrorExistingUser   = errors.New("user already exists")
+	ErrorEncryptingData = errors.New("failed encrypting user credentials")
+	ErrorUnknownUser    = errors.New("unknown username")
 )
 
 type Repo struct {
@@ -18,7 +25,7 @@ type Repo struct {
 type User struct {
 	Username       string
 	HashedPassword string
-	Salt           string
+	Salt           []byte
 }
 
 func Init() *Repo {
@@ -53,19 +60,36 @@ func Init() *Repo {
 	return &Repo{db}
 }
 
-func (r *Repo) AddUser(ld LoginData) {
+func (r *Repo) AddUser(ld LoginData) error {
+	us, err := r.fetchUser(ld)
+	if err != nil {
+		return err
+	}
+	if us.Username != "" {
+		log.Printf("user: %s already exists", ld.Username)
+		return ErrorExistingUser
+	}
+	// if user doesnt already exists
 	encUser, err := ld.encryptLoginData()
 	if err != nil {
 		log.Printf("failed to encrypt new user data: %s", err.Error())
-		return
+		return ErrorEncryptingData
 	}
 	_, err = r.db.Exec("INSERT INTO user (username, password, salt) VALUES (?, ?, ?)", encUser.Username, encUser.HashedPassword, encUser.Salt)
 	if err != nil {
 		log.Printf("failed to add new user: %s", err.Error())
+		return err
 	}
 	log.Printf("user: %s added", ld.Username)
+	return nil
 }
 
+func (r *Repo) AtemptLogin(ld LoginData) error {
+	us, err := r.fetchUser(ld)
+	if err == sql.ErrNoRows {
+		return ErrorUnknownUser
+	}
+	pswd := append(us.Salt, []byte(ld.Password)...)
 	err = bcrypt.CompareHashAndPassword([]byte(us.HashedPassword), pswd)
 	if err != nil {
 		log.Printf("failed to compare passwords: %s", err.Error())

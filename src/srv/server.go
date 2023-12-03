@@ -61,7 +61,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Process loginData
-	fmt.Printf("Adding %+v to DB\n", loginData.Username)
+	fmt.Printf("Atempting to login user %s\n", loginData.Username)
 	msg := "Login successful"
 	err = s.login(loginData)
 	if err != nil {
@@ -91,22 +91,26 @@ func (s *Server) handleSignup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// pass data to datanase
-	s.addUser(loginData)
-
-	// response
 	response := map[string]interface{}{
 		"message": "SignUp successful",
+	}
+
+	// pass data to datanase
+	err = s.addUser(loginData)
+	if err != nil {
+		response = map[string]interface{}{
+			"message": err.Error(),
+		}
 	}
 
 	log.Printf("response: %+v", response)
 	json.NewEncoder(w).Encode(response)
 }
 
-func (s Server) addUser(ld LoginData) {
-	s.repo.AddUser(repo.LoginData(ld))
+func (s Server) addUser(ld LoginData) error {
+	return s.repo.AddUser(repo.LoginData(ld))
 }
 
 func (s Server) login(ld LoginData) error {
-	return s.repo.GetUser(repo.LoginData(ld))
+	return s.repo.AtemptLogin(repo.LoginData(ld))
 }
