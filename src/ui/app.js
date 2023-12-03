@@ -49,12 +49,10 @@ function validateSigninPassword() {
     const pswd = password.value;
     const conf = confPswd.value;
 
-    if (!confirmPasswordVisible) {
-        password.style.borderColor = "black";
-    }
-
     if (pswd === "") {
         console.log("empty password")
+        password.style= {};
+        confPswd.style = {};
         return false
     }else if (pswd !== conf) {
         console.log("passwords don't match")
